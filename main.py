@@ -8,41 +8,43 @@ from crud.import_csv import import_csv
 from crud.search import search_records
 from utils.stats import db_stats
 from utils.backup import backup_db
-from utils.display import success, error, info, muted
+from utils.display import success, error
 
 
 def print_menu():
-    info("\n=========================================")
-    info("      PostgreSQL Database Manager")
-    info("=========================================")
+    C = "\033[96m"   # cyan
+    D = "\033[2m"    # dim
+    R = "\033[0m"    # reset
 
-    info("\n  Database")
-    muted("  ---------")
-    muted("  1.  Create Table")
-    muted("  2.  Show Tables")
-    muted("  3.  Describe Table")
-    muted("  4.  Drop Table")
+    rows = [
+        ("1. Create",   "5. Insert",   "10. Export CSV",  "12. DB Stats"),
+        ("2. Show",     "6. View",     "11. Import CSV",  "13. Backup DB"),
+        ("3. Describe", "7. Search",   "",                ""),
+        ("4. Drop",     "8. Update",   "",                ""),
+        ("",            "9. Delete",   "",                ""),
+    ]
 
-    info("\n  Records")
-    muted("  --------")
-    muted("  5.  Insert Record")
-    muted("  6.  View Records")
-    muted("  7.  Search Records")
-    muted("  8.  Update Record")
-    muted("  9.  Delete Record")
+    W = [16, 18, 18, 20]  # column widths
 
-    info("\n  Import / Export")
-    muted("  ---------------")
-    muted("  10. Export Table to CSV")
-    muted("  11. Import CSV into Table")
+    def cell(text, w):
+        return text.ljust(w)
 
-    info("\n  Utilities")
-    muted("  ---------")
-    muted("  12. Database Statistics")
-    muted("  13. Backup Database")
+    print()
+    print(C + "┌" + "─" * 76 + "┐" + R)
+    print(C + "│" + R + " PostgreSQL Database Manager".center(76) + C + "│" + R)
+    print(C + "├" + "─"*W[0] + "┬" + "─"*W[1] + "┬" + "─"*W[2] + "┬" + "─"*W[3] + "┤" + R)
+    print(C + "│" + R + D + " DATABASE".ljust(W[0]) + C + "│" + R + D + " RECORDS".ljust(W[1]) + C + "│" + R + D + " IMPORT / EXPORT".ljust(W[2]) + C + "│" + R + D + " UTILITIES".ljust(W[3]) + C + "│" + R)
+    print(C + "├" + "─"*W[0] + "┼" + "─"*W[1] + "┼" + "─"*W[2] + "┼" + "─"*W[3] + "┤" + R)
 
-    info("\n  0.  Exit")
-    info("=========================================")
+    for r in rows:
+        line = C + "│" + R
+        for i, col in enumerate(r):
+            line += D + " " + cell(col, W[i] - 1) + R + C + "│" + R
+        print(line)
+
+    print(C + "├" + "─"*W[0] + "┴" + "─"*W[1] + "┴" + "─"*W[2] + "┴" + "─"*W[3] + "┤" + R)
+    print(C + "│" + R + D + " 0. Exit".ljust(76) + C + "│" + R)
+    print(C + "└" + "─" * 76 + "┘" + R)
 
 
 while True:

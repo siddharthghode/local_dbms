@@ -22,11 +22,18 @@ def import_csv():
                 print(f"  {i}. {f}")
             print()
 
-        file_path = input("Enter CSV filename (or full path): ").strip()
+        file_input = input("Enter CSV number or filename: ").strip()
 
-        # Auto-resolve from imports/ if just a filename given
-        if not os.path.isabs(file_path) and not os.path.exists(file_path):
-            file_path = os.path.join(IMPORT_DIR, file_path)
+        # Resolve number to filename from the listed csv_files
+        if file_input.isdigit() and csv_files:
+            idx = int(file_input) - 1
+            if 0 <= idx < len(csv_files):
+                file_path = os.path.join(IMPORT_DIR, csv_files[idx])
+            else:
+                error("\n✗ Invalid number.")
+                return
+        else:
+            file_path = file_input if os.path.isabs(file_input) else os.path.join(IMPORT_DIR, file_input)
 
         if not os.path.exists(file_path):
             error(f"\n✗ File not found: {file_path}")
