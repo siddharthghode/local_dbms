@@ -3,3 +3,6 @@ dbenv/
 __pycache__/
 *.pyc
 logs/*.log
+exports/
+backups/
+imports/*.csv
