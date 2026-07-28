@@ -1,7 +1,7 @@
 from db import conn, cursor
 from crud.read import view_records
 from utils.helpers import get_table_columns, select_table
-from utils.display import display_table
+from utils.display import display_table, success, error, warn, info
 
 
 def delete_record():
@@ -17,23 +17,23 @@ def delete_record():
         cursor.execute(f"SELECT * FROM {table_name} WHERE id = %s", (record_id,))
         record = cursor.fetchone()
         if record is None:
-            print("\nRecord not found.")
+            error("\n✗ Record not found.")
             return
 
-        print("\nSelected Record:")
+        info("\nSelected Record:")
         display_table(columns, [record])
 
         if input("\nAre you sure you want to delete? (y/n): ").lower() != "y":
-            print("\nDeletion cancelled.")
+            warn("\nDeletion cancelled.")
             return
 
         cursor.execute(f"DELETE FROM {table_name} WHERE id = %s", (record_id,))
         conn.commit()
-        print("\n✅ Record deleted successfully!")
+        success("\n✓ Record deleted successfully!")
 
     except Exception as e:
         conn.rollback()
-        print(f"\nError: {e}")
+        error(f"\n✗ Error: {e}")
 
 
 def drop_table():
@@ -42,13 +42,13 @@ def drop_table():
         return
 
     if input(f"\nAre you sure you want to drop '{table_name}'? (y/n): ").lower() != "y":
-        print("\nOperation cancelled.")
+        warn("\nOperation cancelled.")
         return
 
     try:
         cursor.execute(f"DROP TABLE {table_name}")
         conn.commit()
-        print("\n✅ Table dropped successfully!")
+        success("\n✓ Table dropped successfully!")
     except Exception as e:
         conn.rollback()
-        print(f"\nError: {e}")
+        error(f"\n✗ Error: {e}")

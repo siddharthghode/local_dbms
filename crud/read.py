@@ -1,5 +1,5 @@
 from db import cursor
-from utils.display import display_table
+from utils.display import display_table, error
 from utils.helpers import get_table_columns, select_table
 
 
@@ -12,11 +12,11 @@ def show_tables():
         """)
         tables = cursor.fetchall()
         if not tables:
-            print("\nNo tables found.")
+            error("\n✗ No tables found.")
             return
         display_table(["#", "Table"], [(i, t[0]) for i, t in enumerate(tables, 1)])
     except Exception as e:
-        print("Error:", e)
+        error(f"Error: {e}")
 
 
 def describe_table():
@@ -32,11 +32,11 @@ def describe_table():
         """, (table_name,))
         columns = cursor.fetchall()
         if not columns:
-            print("Table not found.")
+            error("✗ Table not found.")
             return
         display_table(["Column", "Type", "Nullable"], columns)
     except Exception as e:
-        print("Error:", e)
+        error(f"Error: {e}")
 
 
 def view_records(table_name=None):
@@ -50,4 +50,4 @@ def view_records(table_name=None):
         headers = get_table_columns(cursor, table_name)
         display_table(headers, rows)
     except Exception as e:
-        print("Error:", e)
+        error(f"Error: {e}")

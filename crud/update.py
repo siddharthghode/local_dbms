@@ -1,7 +1,7 @@
 from db import conn, cursor
 from crud.read import view_records
 from utils.helpers import get_table_columns, get_editable_columns, select_table
-from utils.display import display_table
+from utils.display import display_table, success, error, info
 
 
 def update_record():
@@ -17,14 +17,14 @@ def update_record():
         cursor.execute(f"SELECT * FROM {table_name} WHERE id=%s", (record_id,))
         record = cursor.fetchone()
         if record is None:
-            print("\nRecord not found.")
+            error("\n✗ Record not found.")
             return
 
-        print("\nCurrent Record:")
+        info("\nCurrent Record:")
         display_table(columns, [record])
 
         editable = get_editable_columns(columns)
-        print("\nSelect Columns to Update\n")
+        info("\nSelect Columns to Update\n")
         for i, col in enumerate(editable, 1):
             print(f"{i}. {col}")
 
@@ -45,8 +45,8 @@ def update_record():
             values
         )
         conn.commit()
-        print("\n✅ Record updated successfully!")
+        success("\n✓ Record updated successfully!")
 
     except Exception as e:
         conn.rollback()
-        print(f"\nError: {e}")
+        error(f"\n✗ Error: {e}")

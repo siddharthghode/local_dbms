@@ -1,5 +1,6 @@
 from db import conn, cursor
 from utils.helpers import get_table_columns, get_editable_columns, select_table
+from utils.display import success, error, info
 
 
 def insert_record():
@@ -10,12 +11,12 @@ def insert_record():
 
         columns = get_table_columns(cursor, table_name)
         if not columns:
-            print("\nTable does not exist.")
+            error("\n✗ Table does not exist.")
             return
 
         editable = get_editable_columns(columns)
 
-        print("\n========== ENTER RECORD ==========\n")
+        info("\n========== ENTER RECORD ==========\n")
         values = []
         for col in editable:
             values.append(input(f"Enter {col}: ").strip())
@@ -28,8 +29,8 @@ def insert_record():
             values
         )
         conn.commit()
-        print("\n✅ Record inserted successfully!")
+        success("\n✓ Record inserted successfully!")
 
     except Exception as e:
         conn.rollback()
-        print(f"\nError: {e}")
+        error(f"\n✗ Error: {e}")

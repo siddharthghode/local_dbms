@@ -1,6 +1,29 @@
 from datetime import datetime
 from tabulate import tabulate
+from colorama import Fore, Style, init
 
+init(autoreset=True)
+
+
+# ── colored print helpers ──────────────────────────────────────────────────────
+
+def success(msg):
+    print(Fore.GREEN + msg)
+
+def error(msg):
+    print(Fore.RED + msg)
+
+def warn(msg):
+    print(Fore.YELLOW + msg)
+
+def info(msg):
+    print(Fore.CYAN + msg)
+
+def muted(msg):
+    print(Fore.WHITE + Style.DIM + msg)
+
+
+# ── table display ──────────────────────────────────────────────────────────────
 
 def _format_value(value):
     if value is None:
@@ -12,7 +35,7 @@ def _format_value(value):
 
 def display_table(headers, rows):
     if not rows:
-        print("\nNo records found.")
+        warn("\nNo records found.")
         return
     formatted = [
         [_format_value(cell) for cell in row]

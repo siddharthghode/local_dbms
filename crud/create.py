@@ -1,5 +1,6 @@
 from db import conn, cursor
 from utils.validators import non_empty, positive_int
+from utils.display import success, error, info
 
 
 DATATYPE_MAP = {
@@ -13,7 +14,7 @@ DATATYPE_MAP = {
 
 
 def _get_datatype():
-    print("""
+    info("""
 Choose Data Type
 1. INT      2. VARCHAR  3. TEXT
 4. DATE     5. BOOLEAN  6. DECIMAL
@@ -35,14 +36,14 @@ Choose Data Type
 
 
 def create_table():
-    print("\n========== CREATE TABLE ==========\n")
+    info("\n========== CREATE TABLE ==========\n")
     try:
         table_name = non_empty(input("Enter Table Name: "), "Table name")
         total_columns = positive_int(input("Enter Number of Columns: "), "Column count")
 
         columns = []
         for i in range(total_columns):
-            print(f"\n---------- Column {i + 1} ----------")
+            info(f"\n---------- Column {i + 1} ----------")
             col_name = non_empty(input("Column Name: "), "Column name")
             datatype = _get_datatype()
             constraint = ""
@@ -62,10 +63,10 @@ def create_table():
         """
         cursor.execute(query)
         conn.commit()
-        print("\n✅ Table created successfully!")
+        success("\n✓ Table created successfully!")
 
     except ValueError as e:
-        print(f"\n❌ {e}")
+        error(f"\n✗ {e}")
     except Exception as e:
         conn.rollback()
-        print(f"\n❌ Error: {e}")
+        error(f"\n✗ Error: {e}")
