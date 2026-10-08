@@ -1,71 +1,139 @@
-from crud.create import create_table
-from crud.read import show_tables, describe_table, view_records
-from crud.insert import insert_record
-from crud.update import update_record
-from crud.delete import delete_record, drop_table
-from crud.export import export_csv
-from crud.import_csv import import_csv
-from crud.search import search_records
-from utils.stats import db_stats
-from utils.backup import backup_db
-from utils.display import success, error
+"""
+LOCAL DBMS — Lightweight PostgreSQL Administration CLI
+Entry point: initialises logging, connection pool, then runs the menu loop.
+"""
+import logging
+import sys
+
+from utils.logging_setup import setup_logging
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 
-def print_menu():
-    C = "\033[96m"   # cyan
-    D = "\033[2m"    # dim
-    R = "\033[0m"    # reset
-
-    rows = [
-        ("1. Create",   "5. Insert",   "10. Export CSV",  "12. DB Stats"),
-        ("2. Show",     "6. View",     "11. Import CSV",  "13. Backup DB"),
-        ("3. Describe", "7. Search",   "",                ""),
-        ("4. Drop",     "8. Update",   "",                ""),
-        ("",            "9. Delete",   "",                ""),
-    ]
-
-    W = [16, 18, 18, 20]  # column widths
-
-    def cell(text, w):
-        return text.ljust(w)
-
-    print()
-    print(C + "┌" + "─" * 76 + "┐" + R)
-    print(C + "│" + R + " PostgreSQL Database Manager".center(76) + C + "│" + R)
-    print(C + "├" + "─"*W[0] + "┬" + "─"*W[1] + "┬" + "─"*W[2] + "┬" + "─"*W[3] + "┤" + R)
-    print(C + "│" + R + D + " DATABASE".ljust(W[0]) + C + "│" + R + D + " RECORDS".ljust(W[1]) + C + "│" + R + D + " IMPORT / EXPORT".ljust(W[2]) + C + "│" + R + D + " UTILITIES".ljust(W[3]) + C + "│" + R)
-    print(C + "├" + "─"*W[0] + "┼" + "─"*W[1] + "┼" + "─"*W[2] + "┼" + "─"*W[3] + "┤" + R)
-
-    for r in rows:
-        line = C + "│" + R
-        for i, col in enumerate(r):
-            line += D + " " + cell(col, W[i] - 1) + R + C + "│" + R
-        print(line)
-
-    print(C + "├" + "─"*W[0] + "┴" + "─"*W[1] + "┴" + "─"*W[2] + "┴" + "─"*W[3] + "┤" + R)
-    print(C + "│" + R + D + " 0. Exit".ljust(76) + C + "│" + R)
-    print(C + "└" + "─" * 76 + "┘" + R)
+def _init_pool() -> bool:
+    """Initialise the connection pool; return False on failure."""
+    try:
+        from db.pool import get_pool
+        get_pool()
+        return True
+    except OSError as e:
+        from utils.formatters import error
+        error(f"\n✗ Configuration error: {e}")
+        error("  Create a .env file with DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT.")
+        return False
+    except Exception as e:
+        from utils.formatters import error
+        error(f"\n✗ Could not connect to PostgreSQL: {e}")
+        return False
 
 
-while True:
-    print_menu()
+def run_menu() -> None:
+    from cli.menu import print_menu
+    from cli.shell import run_shell
+    from services.backup_service import backup_db, restore_db
+    from services.export_service import export_csv
+    from services.import_service import import_csv
+    from services.index_service import (
+        create_index,
+        drop_index,
+        explain_query,
+        list_all_indexes,
+    )
+    from services.record_service import (
+        delete_record,
+        insert_record,
+        search_records,
+        update_record,
+        view_records,
+    )
+    from services.stats_service import db_stats
+    from services.table_service import (
+        create_table,
+        describe_table,
+        drop_table,
+        explore_db,
+        show_tables,
+    )
+    from services.user_service import (
+        create_role,
+        drop_role,
+        grant_privilege,
+        list_roles,
+        revoke_privilege,
+    )
+    from utils.formatters import error, success
 
-    match input("\nEnter Choice: ").strip():
-        case "1":  create_table()
-        case "2":  show_tables()
-        case "3":  describe_table()
-        case "4":  drop_table()
-        case "5":  insert_record()
-        case "6":  view_records()
-        case "7":  search_records()
-        case "8":  update_record()
-        case "9":  delete_record()
-        case "10": export_csv()
-        case "11": import_csv()
-        case "12": db_stats()
-        case "13": backup_db()
-        case "0":
+    DISPATCH = {
+        "1":  create_table,
+        "2":  show_tables,
+        "3":  describe_table,
+        "4":  drop_table,
+        "5":  insert_record,
+        "6":  view_records,
+        "7":  search_records,
+        "8":  update_record,
+        "9":  delete_record,
+        "10": export_csv,
+        "11": import_csv,
+        "12": db_stats,
+        "13": backup_db,
+        "14": explore_db,
+        "15": list_all_indexes,
+        "16": create_index,
+        "17": drop_index,
+        "18": explain_query,
+        "19": restore_db,
+        "20": list_roles,
+        "21": create_role,
+        "22": drop_role,
+        "23": grant_privilege,
+        "24": revoke_privilege,
+    }
+
+    while True:
+        print_menu()
+        try:
+            choice = input("\nEnter Choice: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+
+        if choice == "0":
             success("\nGood Bye!")
             break
-        case _:
+        elif choice == "s":
+            run_shell()
+        elif choice in DISPATCH:
+            DISPATCH[choice]()
+        else:
             error("✗ Invalid Choice")
+
+
+def main() -> None:
+    logger.info("LOCAL DBMS starting.")
+
+    # Support --shell flag for direct shell mode
+    shell_mode = "--shell" in sys.argv
+
+    if not _init_pool():
+        sys.exit(1)
+
+    from utils.formatters import success
+    success("  Database connected successfully!")
+    logger.info("Connected to PostgreSQL at %s.", __import__("db.config", fromlist=["DB_CONFIG"]).DB_CONFIG["host"])
+
+    try:
+        if shell_mode:
+            from cli.shell import run_shell
+            run_shell()
+        else:
+            run_menu()
+    finally:
+        from db.pool import close_pool
+        close_pool()
+        logger.info("LOCAL DBMS shutdown.")
+
+
+if __name__ == "__main__":
+    main()

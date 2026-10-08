@@ -1,8 +1,37 @@
+# Secrets
 .env
-dbenv/
+*.env
+
+# Python
 __pycache__/
 *.pyc
-logs/*.log
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+dbenv/
+.venv/
+venv/
+env/
+
+# Generated output
 exports/
 backups/
+logs/*.log
+
+# Imports (keep directory, ignore CSV data)
 imports/*.csv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp

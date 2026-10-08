@@ -1,15 +1,14 @@
+"""Shared CLI helper utilities."""
 from colorama import Fore, Style
+
+from db.metadata import get_column_names, list_tables
 
 SKIP_COLUMNS = {"id", "created_at", "updated_at"}
 
 
-def select_table(cursor):
-    cursor.execute("""
-        SELECT tablename FROM pg_tables
-        WHERE schemaname = 'public'
-        ORDER BY tablename;
-    """)
-    tables = [row[0] for row in cursor.fetchall()]
+def select_table(cur) -> str | None:
+    """Prompt user to pick a table from the public schema."""
+    tables = list_tables(cur)
     if not tables:
         print(Fore.RED + "\n✗ No tables found.")
         return None
@@ -26,15 +25,9 @@ def select_table(cursor):
     return None
 
 
-def get_table_columns(cursor, table_name):
-    cursor.execute("""
-        SELECT column_name
-        FROM information_schema.columns
-        WHERE table_name = %s
-        ORDER BY ordinal_position;
-    """, (table_name,))
-    return [row[0] for row in cursor.fetchall()]
+def get_table_columns(cur, table_name: str) -> list[str]:
+    return get_column_names(cur, table_name)
 
 
-def get_editable_columns(columns):
+def get_editable_columns(columns: list[str]) -> list[str]:
     return [col for col in columns if col not in SKIP_COLUMNS]
